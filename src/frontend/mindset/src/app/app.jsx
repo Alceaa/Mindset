@@ -2,39 +2,34 @@ import React from "react";
 import { createRoot } from 'react-dom/client';
 import Login from './components/auth/login/login.jsx'
 import Registration from './components/auth/registration/registration.jsx'
-import Header from './components/header.jsx'
+import Dashboard from "./components/dashboard.jsx";
 import {
     createBrowserRouter,
     RouterProvider,
+    Navigate
   } from "react-router-dom";
-  
+import Logout from "./components/auth/logout.jsx";
 
-class Home extends React.Component{
-    constructor(props) {
-        super(props);
-        this.state = {message: ''};
-    }
-
-    render(){
-        return(
-            <div>
-                <Header />
-            </div>
-        )
-    }
-}
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Home />
+        element: <Navigate to="dashboard/"/>
+    },
+    {
+        path: "dashboard/",
+        element: <Dashboard />
     },
     {
         path: "signin/",
-        element: <Login />
+        element: localStorage.getItem("isLogged") ? <Login /> : <Navigate to="../dashboard/" />
     },
     {
         path: "signup/",
-        element: <Registration />
+        element: localStorage.getItem("isLogged") ? <Registration /> : <Navigate to="../dashboard/" />
+    },
+    {
+        path: "logout/",
+        element: localStorage.getItem("isLogged") ? <Logout /> : <Navigate to="../signin/" />
     }
 ])
 

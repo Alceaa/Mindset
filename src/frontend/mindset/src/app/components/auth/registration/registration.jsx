@@ -1,12 +1,17 @@
 import React from "react";
 import "../../../css/auth/auth.scss";
 import Header from '../../header.jsx'
-import { Link } from "react-router-dom";
+import { Link, Navigate} from "react-router-dom";
+import Cookies from 'js-cookie';
+
 
 class Registration extends React.Component{
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            redirect: false,
+            csrftoken: Cookies.get('csrftoken')
+        };
 
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -27,21 +32,48 @@ class Registration extends React.Component{
     
     async handleSubmit(event) {
         event.preventDefault();
-        console.log(this.state.login)
-        const response = await fetch(process.env.REACT_APP_BASE_API_URL + "auth/registration",
-            {method: 'POST', headers:{'Content-Type': 'application/json'}, body: JSON.stringify(
+        if(this.state.password2 != this.state.password1){
+            this.setState({
+                error: "Пароли не совпадают"
+            })
+            return;
+        }
+        await fetch(process.env.REACT_APP_BASE_API_URL + "auth/registration",{
+            method: 'POST', 
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.state.csrftoken
+            }, 
+            credentials: 'include',
+            body: JSON.stringify(
                 {
                     "username":this.state.login,
                     "email":this.state.email,
-                    "password1":this.state.password1,
-                    "password2":this.state.password2
+                    "password":this.state.password1,
                 }
             )}
-        );
-        let data = await response.json()
-        console.log(data)
+        )
+        .then((res) => {
+            return res.json();
+        })
+        .then((data) => {
+            if(data.status == "Success"){
+                this.setState({
+                    redirect: true
+                })
+                localStorage.setItem('isLogged', true);
+            }
+            Object.values(data).forEach((value) => {
+                this.setState({
+                    error: value
+                })
+            });
+        })
     }
     render(){
+        if (this.state.redirect){
+            return <Navigate to="/" />
+        }
         return(
             <div>
                 <Header />
@@ -51,21 +83,21 @@ class Registration extends React.Component{
                         <form onSubmit={this.handleSubmit}>
                             <label>
                                 Почта:
-                                <input name="email" type="email" value={this.state.email || ''} onChange={this.handleInputChange}/>
+                                <input name="email" type="email" value={this.state.email || ''} onChange={this.handleInputChange} required/>
                             </label>
                             <label>
                                 Имя пользователя:
-                                <input name="login" type="text" value={this.state.login || ''} onChange={this.handleInputChange}/>
+                                <input name="login" type="text" value={this.state.login || ''} onChange={this.handleInputChange} required/>
                             </label>
                             <label>
                                 Пароль:
-                                <input name="password1" type="password" onChange={this.handleInputChange}/>
+                                <input name="password1" type="password" onChange={this.handleInputChange} required/>
                             </label>
                             <label>
                                 Повторите пароль:
-                                <input name="password2" type="password" onChange={this.handleInputChange}/>
+                                <input name="password2" type="password" onChange={this.handleInputChange} required/>
                             </label>
-                            <div name="error" className={ "errorMessage" }></div>
+                            <div name="error" className={ "errorMessage" }>{this.state.error}</div>
                             <div className={ "bottomContainer" }>
                                 <Link className={ "link" } to={'/../signin/'}>Уже есть аккаунт</Link>
                                 <input type="submit" value="Зарегистрироваться"/>
@@ -77,5 +109,6 @@ class Registration extends React.Component{
         );
     }
 }
+
 
 export default Registration;
