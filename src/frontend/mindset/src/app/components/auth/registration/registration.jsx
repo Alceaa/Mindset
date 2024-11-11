@@ -1,8 +1,8 @@
 import React from "react";
 import "../../../css/auth/auth.scss";
 import Header from '../../header.jsx'
-import { Link, Navigate} from "react-router-dom";
-import Cookies from 'js-cookie';
+import { Link, Navigate, useNavigate} from "react-router-dom";
+import getCSRF from '../../../utils/csrf.js';
 
 
 class Registration extends React.Component{
@@ -10,15 +10,9 @@ class Registration extends React.Component{
         super(props);
         this.state = {
             redirect: false,
-            csrftoken: Cookies.get('csrftoken')
         };
-
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-    }
-
-    async componentDidMount() {
-        
     }
 
     handleInputChange(event) {
@@ -58,10 +52,10 @@ class Registration extends React.Component{
         })
         .then((data) => {
             if(data.status == "Success"){
+                localStorage.setItem("isLogged", "true");
                 this.setState({
                     redirect: true
                 })
-                localStorage.setItem('isLogged', true);
             }
             Object.values(data).forEach((value) => {
                 this.setState({
@@ -70,6 +64,20 @@ class Registration extends React.Component{
             });
         })
     }
+
+    componentDidMount(){
+        getCSRF().then((csrf) =>{
+            this.setState({
+                csrftoken: csrf
+            })
+        })
+        if(localStorage.getItem("isLogged") === "true"){
+            this.setState({
+                redirect: true
+            })
+        }
+    }
+
     render(){
         if (this.state.redirect){
             return <Navigate to="/" />

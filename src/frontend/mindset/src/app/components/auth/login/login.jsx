@@ -1,23 +1,19 @@
 import React from "react";
 import "../../../css/auth/auth.scss";
 import Header from '../../header.jsx'
-import { Link } from "react-router-dom";
-import Cookies from 'js-cookie';
+import { Link, Navigate} from "react-router-dom";
+import getCSRF from '../../../utils/csrf.js';
 
 class Login extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            isLoggedIn: false,
-            csrftoken: Cookies.get('csrftoken')
+            redirect: false,
         }
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    async componentDidMount() {
-        
-    }
 
     handleInputChange(event) {
         const value = event.target.value;
@@ -52,10 +48,10 @@ class Login extends React.Component{
         })
         .then((data) => {
             if(data.status == "Success"){
+                localStorage.setItem("isLogged", "true");
                 this.setState({
                     redirect: true
                 })
-                localStorage.setItem('isLogged', true);
             }
             if(data.error != null){
                 this.setState({
@@ -63,9 +59,19 @@ class Login extends React.Component{
                 })
             }
         })
-        .catch(error => {
-            console.log(error) //
-        });
+    }
+
+    componentDidMount(){
+        getCSRF().then((csrf) =>{
+            this.setState({
+                csrftoken: csrf
+            })
+        })
+        if(localStorage.getItem("isLogged") === "true"){
+            this.setState({
+                redirect: true
+            })
+        }
     }
 
     render(){

@@ -21,15 +21,15 @@ const router = createBrowserRouter([
     },
     {
         path: "signin/",
-        element: localStorage.getItem("isLogged") ? <Login /> : <Navigate to="../dashboard/" />
+        element: <Login />
     },
     {
         path: "signup/",
-        element: localStorage.getItem("isLogged") ? <Registration /> : <Navigate to="../dashboard/" />
+        element: <Registration />
     },
     {
         path: "logout/",
-        element: localStorage.getItem("isLogged") ? <Logout /> : <Navigate to="../signin/" />
+        element: <Logout />
     }
 ])
 
